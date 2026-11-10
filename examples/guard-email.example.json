@@ -1,0 +1,9 @@
+{
+  "host": "smtp.example.com",
+  "port": 587,
+  "security": "starttls",
+  "username": "bot@example.com",
+  "password": "请填写授权码或应用专用密码",
+  "from": "guard@example.com",
+  "timeout": 30
+}

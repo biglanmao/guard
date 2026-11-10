@@ -1,0 +1,15 @@
+{
+  "name": "guard",
+  "version": "0.2.0",
+  "description": "OpenHarness 安全护栏扩展：在工具调用前拦截高风险操作，并提供审计、审查子代理、自检工具与邮箱通知。",
+  "enabled_by_default": true,
+  "skills_dir": "skills",
+  "tools_dir": "tools",
+  "hooks_file": "hooks.json",
+  "mcp_file": "mcp.json",
+  "author": {
+    "name": "biglanmao",
+    "url": "https://github.com/biglanmao/guard"
+  },
+  "hooks": "hooks.json"
+}

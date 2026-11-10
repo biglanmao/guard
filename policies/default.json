@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "mode": "enforce",
+  "rules": [
+    {
+      "id": "destructive-rm-root",
+      "description": "拦截对根目录、家目录或通配符的递归删除",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\brm\\s+(?:-\\S+\\s+)*(?:[\"'`])?(?:/|~|\\$HOME)(?=\\s|\\*|$|[\"'`])",
+      "reason": "检测到可能删除根目录或家目录的 rm 命令，请改用具体路径并先确认内容。"
+    },
+    {
+      "id": "force-push",
+      "description": "拦截强制推送（可能覆盖远端历史）",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\bgit\\s+push\\b[^\\n]*(?:--force(?:-with-lease)?|(?<![\\w-])-f(?![\\w-]))",
+      "reason": "强制推送会覆盖远端历史。请改用普通 push；确需强制推送时由人工执行。"
+    },
+    {
+      "id": "pipe-to-shell",
+      "description": "拦截将网络内容直接管道到 shell 执行",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\b(?:curl|wget)\\b[^\\n|]*\\|\\s*(?:sudo\\s+)?(?:ba|z|k|da)?sh\\b",
+      "reason": "禁止把下载内容直接交给 shell 执行。请先下载、检查内容，再运行可审计的脚本。"
+    },
+    {
+      "id": "disk-destroy",
+      "description": "拦截直接写磁盘设备或格式化文件系统",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\b(?:dd\\b[^\\n]*\\bof=/dev/|mkfs(?:\\.\\w+)?\\s+(?:-\\S+\\s+)*/dev/)",
+      "reason": "检测到磁盘写入或格式化命令，可能造成不可恢复的数据丢失。"
+    },
+    {
+      "id": "chmod-root-777",
+      "description": "拦截对根目录设置 777 权限",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\bchmod\\s+(?:-\\S+\\s+)*777\\s+/(?=\\s|$)",
+      "reason": "禁止把根目录权限改为 777，请对具体文件设置最小必要权限。"
+    },
+    {
+      "id": "read-dotenv-file",
+      "description": "拦截通过文件工具读取 .env 等本地密钥文件（模板文件除外）",
+      "action": "deny",
+      "tools": [
+        "read_file",
+        "grep"
+      ],
+      "fields": [
+        "path",
+        "file_path"
+      ],
+      "regex": "(?:^|[/\\\\])\\.env(?:\\.(?!example\\b|sample\\b|template\\b|dist\\b)[\\w.-]+)?$",
+      "reason": ".env 文件通常包含密钥。请读取 .env.example / .env.sample 等模板，或让用户显式提供所需配置。"
+    },
+    {
+      "id": "read-dotenv-command",
+      "description": "拦截通过 shell 读取 .env 等本地密钥文件",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "\\b(?:cat|less|more|head|tail|grep|rg|awk|sed|source|printenv)\\b[^\\n]*\\.env(?:\\.(?!example\\b|sample\\b|template\\b|dist\\b)[\\w.-]+)?(?=$|[\\s\"'|;&)])",
+      "reason": ".env 文件通常包含密钥。请读取 .env.example / .env.sample 等模板，或让用户显式提供所需配置。"
+    },
+    {
+      "id": "read-credentials",
+      "description": "拦截访问 SSH 私钥、云凭证等敏感文件",
+      "action": "deny",
+      "tools": [
+        "read_file",
+        "grep",
+        "bash"
+      ],
+      "fields": [
+        "path",
+        "file_path",
+        "command"
+      ],
+      "regex": "(?:^|[/\\\\])(?:\\.ssh[/\\\\](?:id_\\w+|authorized_keys|known_hosts)|\\.aws[/\\\\]credentials|\\.git-credentials|\\.netrc|\\.kube[/\\\\]config)(?=$|[\\s\"'|;&)])",
+      "reason": "该路径属于敏感凭据文件，禁止自动读取。"
+    },
+    {
+      "id": "private-key-material",
+      "description": "拦截写入或输出私钥内容",
+      "action": "deny",
+      "tools": [
+        "write_file",
+        "edit_file",
+        "notebook_edit",
+        "bash",
+        "send_email"
+      ],
+      "fields": [
+        "content",
+        "new_str",
+        "command",
+        "body"
+      ],
+      "regex": "-----BEGIN (?:RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY-----",
+      "reason": "检测到私钥材料。私钥不应写入仓库、日志或出现在命令中。"
+    },
+    {
+      "id": "email-sensitive-attachment",
+      "description": "禁止通过邮件发送凭据或私钥文件",
+      "action": "deny",
+      "tools": [
+        "send_email"
+      ],
+      "fields": [
+        "attachments"
+      ],
+      "regex": "(?:^|[/\\\\])(?:\\.env(?:\\.(?!example\\b|sample\\b|template\\b|dist\\b)[\\w.-]+)?|\\.ssh[/\\\\]id_\\w+|\\.aws[/\\\\]credentials|\\.git-credentials|\\.netrc|\\.kube[/\\\\]config)(?=$|[\\s\"'|;&)])",
+      "reason": "禁止通过邮件外发凭据或私钥文件。请移除该附件，或由用户手动处理。"
+    },
+    {
+      "id": "leak-smtp-secret",
+      "description": "禁止在命令中回显 SMTP 授权码环境变量",
+      "action": "deny",
+      "tools": [
+        "bash"
+      ],
+      "fields": [
+        "command"
+      ],
+      "regex": "(?:\\$\\{?OPENHARNESS_GUARD_SMTP_PASSWORD\\b|(?<![\\w-])(?:printenv|env)\\b[^\\n]*OPENHARNESS_GUARD_SMTP_PASSWORD\\b)",
+      "reason": "禁止打印 SMTP 授权码。只应把环境变量名传给配置脚本（--password-env），不要展开它的值。"
+    }
+  ]
+}
