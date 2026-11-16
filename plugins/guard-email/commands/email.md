@@ -8,9 +8,12 @@ when_to_use: 首次配置后验证、需要发送测试邮件、或排查发信�
 
 先定位脚本，使用第一个存在的路径：
 
-- `$OPENHARNESS_GUARD_ROOT/scripts/guard-config.py`
-- `${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins/guard/scripts/guard-config.py`
-- `.openharness/plugins/guard/scripts/guard-config.py`
+- `${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins/*/scripts/guard-config.py`（用户级安装）
+- `${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins/*/scripts/guard-config.py`（ohmo 工作区）
+- `.openharness/plugins/*/scripts/guard-config.py`（项目级安装）
+- `$OPENHARNESS_GUARD_ROOT/../*/scripts/guard-config.py`（guard 装在自定义插件根时）
+
+在 `plugins/` 下按 glob 找 `guard-email/scripts/guard-config.py` 即可，不要写死插件目录名。
 
 执行规则：
 

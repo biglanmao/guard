@@ -1,0 +1,11 @@
+{
+  "name": "guard-email",
+  "version": "0.1.0",
+  "description": "guard 配套的邮箱通知插件：send_email 工具通过 SMTP 发送文本与文件附件，附 SMTP 配置向导与 /guard-email:email 斜杠命令。可单独安装；建议与 guard 一起安装——敏感附件与私钥外发的拦截由 guard 的策略提供。",
+  "enabled_by_default": true,
+  "tools_dir": "tools",
+  "author": {
+    "name": "biglanmao",
+    "url": "https://github.com/biglanmao/guard"
+  }
+}

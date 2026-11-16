@@ -1,0 +1,11 @@
+{
+  "name": "ask_image",
+  "version": "0.1.0",
+  "description": "OpenHarness 扩展：ask_image 工具，把「描述图片」换成「就图片内容回答一个具体问题」，适合读取报错、按钮文案、表格等定向信息。",
+  "enabled_by_default": true,
+  "tools_dir": "tools",
+  "author": {
+    "name": "biglanmao",
+    "url": "https://github.com/biglanmao/guard"
+  }
+}

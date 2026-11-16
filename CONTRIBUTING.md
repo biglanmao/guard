@@ -8,7 +8,8 @@
 python3 -m unittest discover -s tests -v
 ```
 
-- 只使用 Python 标准库实现 `lib/` 与 `hooks/`，保证最小运行环境可用。
+- 仓库是插件集合：插件放 `plugins/<名称>/`，`plugin.json` 的 `name` 必须与目录名一致。
+- 只使用 Python 标准库实现 `plugins/<名称>/lib/` 与 `hooks/`，保证最小运行环境可用。
 - 新增规则时：
   1. 在 `policies/default.json` 追加规则（ID 用 kebab-case）；
   2. 在 `tests/test_guard_core.py` 覆盖“命中”和“不命中”两类用例；

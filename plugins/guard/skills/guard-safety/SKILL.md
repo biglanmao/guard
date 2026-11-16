@@ -27,7 +27,7 @@ guard 是 OpenHarness 的扩展插件，在每次工具调用前执行 `pre_tool
 
 ## 规则来源
 
-- 内置策略：`policies/default.json`
+- 内置策略：`plugins/guard/policies/default.json`（也可看当前安装目录下的 `policies/default.json`）
 - 自定义策略：设置 `OPENHARNESS_GUARD_POLICY` 指向自己的 JSON 文件
 - 模式：`OPENHARNESS_GUARD_MODE=off|audit|enforce`，默认 `enforce`
 
@@ -42,9 +42,10 @@ guard 是 OpenHarness 的扩展插件，在每次工具调用前执行 `pre_tool
 3. **网络与依赖**：不可信源安装脚本、直接执行远程代码、跳过校验和的下载。
 4. **权限边界**：是否写入仓库之外、是否修改系统级配置、是否触碰生产环境。
 
-## 邮箱外发
+## 邮箱外发（需另装 guard-email 插件）
 
-使用 `send_email` 发送报告或附件前：
+`send_email` 工具与 `/guard-email:email` 命令来自 `guard-email` 插件；没装时本插件只剩
+下列判定规则（规则按工具名匹配，未装则不命中）。使用 `send_email` 发送报告或附件前：
 
 - 确认收件人地址，优先配合 `OPENHARNESS_GUARD_EMAIL_ALLOWLIST` 使用。
 - 不要附加 `.env`、SSH 私钥、云凭证等文件（会被 `email-sensitive-attachment` 拦截）。

@@ -8,9 +8,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT / "lib") not in sys.path:
-    sys.path.insert(0, str(ROOT / "lib"))
+PLUGIN = Path(__file__).resolve().parents[1] / "plugins" / "guard-email"
+if str(PLUGIN / "lib") not in sys.path:
+    sys.path.insert(0, str(PLUGIN / "lib"))
 
 from mailer import (  # noqa: E402
     Attachment,

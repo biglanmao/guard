@@ -114,7 +114,7 @@
     },
     {
       "id": "private-key-material",
-      "description": "拦截写入或输出私钥内容",
+      "description": "拦截写入或输出私钥内容（send_email 分支需安装 guard-email 插件）",
       "action": "deny",
       "tools": [
         "write_file",
@@ -134,7 +134,7 @@
     },
     {
       "id": "email-sensitive-attachment",
-      "description": "禁止通过邮件发送凭据或私钥文件",
+      "description": "禁止通过邮件发送凭据或私钥文件（需安装 guard-email 插件）",
       "action": "deny",
       "tools": [
         "send_email"

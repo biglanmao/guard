@@ -1,7 +1,7 @@
 {
   "name": "guard",
-  "version": "0.2.0",
-  "description": "OpenHarness 安全护栏扩展：在工具调用前拦截高风险操作，并提供审计、审查子代理、自检工具与邮箱通知。",
+  "version": "0.3.0",
+  "description": "OpenHarness 安全护栏扩展：在工具调用前拦截高风险操作，并提供审计日志、审计技能、斜杠命令、审查子代理与自检工具。邮箱通知见 guard-email 插件。",
   "enabled_by_default": true,
   "skills_dir": "skills",
   "tools_dir": "tools",

@@ -11,8 +11,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SCRIPT = ROOT / "scripts" / "guard-config.py"
+PLUGIN = Path(__file__).resolve().parents[1] / "plugins" / "guard-email"
+SCRIPT = PLUGIN / "scripts" / "guard-config.py"
 
 
 def load_script_module():

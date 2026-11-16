@@ -8,9 +8,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT / "lib") not in sys.path:
-    sys.path.insert(0, str(ROOT / "lib"))
+PLUGIN = Path(__file__).resolve().parents[1] / "plugins" / "guard"
+if str(PLUGIN / "lib") not in sys.path:
+    sys.path.insert(0, str(PLUGIN / "lib"))
 
 from guard_core import PolicyError, check, load_policy, resolve_mode  # noqa: E402
 

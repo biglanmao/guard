@@ -1,0 +1,20 @@
+{
+  "pre_tool_use": [
+    {
+      "type": "command",
+      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_hook.py\" \"$d\"/*/hooks/guard_hook.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard] 未找到 guard_hook.py，已跳过拦截；请设置 OPENHARNESS_GUARD_ROOT\" >&2; exit 0",
+      "timeout_seconds": 10,
+      "block_on_failure": true,
+      "priority": 100
+    }
+  ],
+  "post_tool_use": [
+    {
+      "type": "command",
+      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_audit.py\" \"$d\"/*/hooks/guard_audit.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard] 未找到 guard_audit.py，已跳过审计；请设置 OPENHARNESS_GUARD_ROOT\" >&2; exit 0",
+      "timeout_seconds": 10,
+      "block_on_failure": false,
+      "priority": 50
+    }
+  ]
+}
