@@ -13,6 +13,9 @@
 - 插件 `plugins/ask_image/`：`ask_image` 工具就图片内容回答一个具体问题（必填 `question`、
   可选 `context`），复用内置 `image_to_text` 的图片解析与视觉模型调用，只替换 prompt 组合，
   输出与报错措辞改为 `ask_image` / `[Image answer via ...]`。
+- `tests/test_install_script.py`：端到端跑 `scripts/install.sh`（复制 / 软链 / `--only` /
+  `--force` / `--list`），并用安装产物里的 `hooks.json` 验证「装好之后 hook 真的能拦截、
+  审计真的会写记录」，而不只是检查文件存在。
 - `scripts/install.sh`：`--list` 列出仓库中的插件，`--only <名称[,名称]>` 只装指定插件
   （未知名直接报错，可重复或逗号分隔），`--all` 重置为全装。
 - 支持安装到 ohmo 工作区：`./scripts/install.sh "${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins"`。
