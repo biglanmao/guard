@@ -2,7 +2,7 @@
   "pre_tool_use": [
     {
       "type": "command",
-      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_hook.py\" \"$d\"/*/hooks/guard_hook.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard] 未找到 guard_hook.py，已跳过拦截；请设置 OPENHARNESS_GUARD_ROOT\" >&2; exit 0",
+      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_hook.py\" \"$d\"/*/hooks/guard_hook.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard][WARN] 未找到 guard_hook.py：本次工具调用未经任何拦截（fail-open）。已查找：${OPENHARNESS_GUARD_ROOT:-(未设置)}、${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins、${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins、$PWD/.openharness/plugins。请检查安装或设置 OPENHARNESS_GUARD_ROOT。\" >&2; python3 -c \"import datetime,json,os;log=os.environ.get('OPENHARNESS_GUARD_AUDIT_LOG') or os.path.join(os.environ.get('OPENHARNESS_LOGS_DIR') or os.path.expanduser('~/.openharness/logs'),'guard-audit.jsonl');os.makedirs(os.path.dirname(log),exist_ok=True);open(log,'a',encoding='utf-8').write(json.dumps({'ts':datetime.datetime.now(datetime.timezone.utc).isoformat(),'hook':'pre_tool_use','event':'hook-missing','cwd':os.getcwd()},ensure_ascii=False)+'\\n')\" 2>/dev/null || true; exit 0",
       "timeout_seconds": 10,
       "block_on_failure": true,
       "priority": 100
@@ -11,7 +11,7 @@
   "post_tool_use": [
     {
       "type": "command",
-      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_audit.py\" \"$d\"/*/hooks/guard_audit.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard] 未找到 guard_audit.py，已跳过审计；请设置 OPENHARNESS_GUARD_ROOT\" >&2; exit 0",
+      "command": "for d in \"${OPENHARNESS_GUARD_ROOT:-}\" \"${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins\" \"${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins\" \"$PWD/.openharness/plugins\"; do [ -n \"$d\" ] || continue; for f in \"$d/hooks/guard_audit.py\" \"$d\"/*/hooks/guard_audit.py; do if [ -f \"$f\" ]; then exec python3 \"$f\"; fi; done; done; echo \"[guard][WARN] 未找到 guard_audit.py：本次调用未被审计（fail-open）。已查找：${OPENHARNESS_GUARD_ROOT:-(未设置)}、${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins、${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins、$PWD/.openharness/plugins。请检查安装或设置 OPENHARNESS_GUARD_ROOT。\" >&2; python3 -c \"import datetime,json,os;log=os.environ.get('OPENHARNESS_GUARD_AUDIT_LOG') or os.path.join(os.environ.get('OPENHARNESS_LOGS_DIR') or os.path.expanduser('~/.openharness/logs'),'guard-audit.jsonl');os.makedirs(os.path.dirname(log),exist_ok=True);open(log,'a',encoding='utf-8').write(json.dumps({'ts':datetime.datetime.now(datetime.timezone.utc).isoformat(),'hook':'post_tool_use','event':'hook-missing','cwd':os.getcwd()},ensure_ascii=False)+'\\n')\" 2>/dev/null || true; exit 0",
       "timeout_seconds": 10,
       "block_on_failure": false,
       "priority": 50

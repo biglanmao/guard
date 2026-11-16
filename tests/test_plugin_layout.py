@@ -227,6 +227,8 @@ class InstallResolutionTest(unittest.TestCase):
                 "OPENHARNESS_GUARD_ROOT",
                 "OPENHARNESS_GUARD_POLICY",
                 "OPENHARNESS_GUARD_MODE",
+                "OPENHARNESS_GUARD_AUDIT_LOG",
+                "OPENHARNESS_LOGS_DIR",
                 "OHMO_WORKSPACE",
             }
         }
@@ -323,7 +325,30 @@ class InstallResolutionTest(unittest.TestCase):
             project.mkdir()
             result = self.run_command(root, project)
             self.assertEqual(result.returncode, 0, result.stderr)
+            # 仍然放行，但必须让人一眼看出「当前没有护栏」。
+            self.assertIn("[guard][WARN]", result.stderr)
             self.assertIn("未找到 guard_hook.py", result.stderr)
+            self.assertIn("未经任何拦截", result.stderr)
+            self.assertIn(".openharness/plugins", result.stderr)
+
+    def test_missing_hook_records_audit_event(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            result = self.run_command(root, project)
+            self.assertEqual(result.returncode, 0, result.stderr)
+
+            log = root / "home" / ".openharness" / "logs" / "guard-audit.jsonl"
+            self.assertTrue(log.is_file(), result.stderr)
+            events = [
+                json.loads(line)
+                for line in log.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertEqual(events[-1]["event"], "hook-missing")
+            self.assertEqual(events[-1]["hook"], "pre_tool_use")
+            self.assertEqual(Path(events[-1]["cwd"]).resolve(), project.resolve())
 
 
 if __name__ == "__main__":

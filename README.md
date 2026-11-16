@@ -130,8 +130,13 @@ ohmo 没有独立的插件格式，它把 `<workspace>/plugins` 作为额外的�
 （`<根>/*/hooks/guard_hook.py`），因此 `OPENHARNESS_GUARD_ROOT` 既可以是插件目录
 （`.../plugins/guard`），也可以是插件根目录（`.../plugins`）。
 
-都找不到时输出告警并放行（fail-open），避免 hook 异常把整个 Agent 锁死。
-因此**把插件装到非默认插件根目录时请设置 `OPENHARNESS_GUARD_ROOT`**。
+都找不到时**放行（fail-open）**，避免 hook 异常把整个 Agent 锁死。但放行不是静默的：
+stderr 会输出以 `[guard][WARN]` 开头的告警，明确写出「本次工具调用未经任何拦截」
+和实际查找过的四个路径，同时往审计日志追加一条 `hook-missing` 事件——
+装错位置时既能当场看见，也能事后从日志里查出来。
+
+因此**把插件装到非默认插件根目录时请设置 `OPENHARNESS_GUARD_ROOT`**；看到
+`[guard][WARN]` 就说明当前没有护栏，先修路径再执行高风险操作。
 
 ### 验证安装
 

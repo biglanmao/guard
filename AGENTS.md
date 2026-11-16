@@ -25,7 +25,9 @@
 - `plugins/guard/hooks.json`：扁平 hook 配置；`pre_tool_use` 拦截，`post_tool_use` 审计。
   命令按 `$OPENHARNESS_GUARD_ROOT`、用户插件根、ohmo 工作区插件根、
   `$PWD/.openharness/plugins` 的顺序查找，每层先试 `<根>/hooks/*.py` 再试
-  `<根>/*/hooks/*.py`；**不要写死插件目录名**。修改后同步更新
+  `<根>/*/hooks/*.py`；**不要写死插件目录名**。全部缺失时保持 fail-open，但必须输出
+  `[guard][WARN]` 告警（写明「未经任何拦截」与查找路径）并追加 `hook-missing` 审计事件，
+  不要让它静默失效。修改后同步更新
   `tests/test_plugin_layout.py` 的 `InstallResolutionTest`。
 - `plugins/guard/lib/guard_core.py`：策略引擎，**只允许使用 Python 标准库**。
 - `plugins/guard/policies/default.json`：默认规则；修改后必须补测试。其中
