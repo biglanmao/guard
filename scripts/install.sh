@@ -10,7 +10,7 @@ usage() {
   ./scripts/install.sh                  # 复制安装 plugins/ 下的全部插件
   ./scripts/install.sh --list           # 列出仓库里的插件，不安装
   ./scripts/install.sh --only guard     # 只安装指定插件；可逗号分隔或重复 --only
-  ./scripts/install.sh --all            # 显式安装全部（默认）
+  ./scripts/install.sh --all            # 显式安装全部（默认；会重置 --only）
   ./scripts/install.sh --link           # 软链接（开发用，修改立即生效）
   ./scripts/install.sh --force          # 覆盖已有安装
   ./scripts/install.sh /custom/plugins  # 安装到自定义插件根目录

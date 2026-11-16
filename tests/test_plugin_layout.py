@@ -71,9 +71,13 @@ class PluginCollectionTest(unittest.TestCase):
                     str(target).startswith(str(plugin_root) + "/"),
                     f"{plugin_root.name}.{key}={value} 指向了插件目录之外",
                 )
-                if key.endswith("_dir"):
+                if key.endswith("_dir") or not Path(value).suffix:
                     self.assertTrue(
                         target.is_dir(), f"{plugin_root.name} 缺少目录 {value}"
+                    )
+                else:
+                    self.assertTrue(
+                        target.is_file(), f"{plugin_root.name} 缺少文件 {value}"
                     )
 
     def test_repository_root_is_not_a_plugin(self) -> None:

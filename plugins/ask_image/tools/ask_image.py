@@ -29,6 +29,13 @@ _ANSWER_PREFIX = "[Image answer via "
 class AskImageInput(image_to_text_tool.ImageToTextToolInput):
     """Image input plus a specific question to answer about it."""
 
+    prompt: str = Field(
+        default="",
+        description=(
+            "Reserved: derived from `question` and overwritten on execution. "
+            "Put your answer style or output format in `context` instead."
+        ),
+    )
     question: str = Field(
         description=(
             "The specific question to answer about the image, e.g. "
