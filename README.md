@@ -49,7 +49,8 @@
 
 本仓库是**插件集合**：每个插件放在 `plugins/<名称>/` 下，各自带一份 `plugin.json`，
 当前包含 `plugins/guard/`、`plugins/guard-email/`、`plugins/ask_image/`。仓库根目录本身不是插件，
-`scripts/install.sh` 会遍历 `plugins/*/plugin.json` 发现插件。安装前确认：
+`scripts/install.sh` 会遍历 `plugins/*/plugin.json` 发现插件；`update.sh` / `uninstall.sh`
+用同样的方式识别哪些插件属于本仓库。安装前确认：
 
 - 已安装 OpenHarness，`oh` / `openharness` 可运行；
 - 运行 OpenHarness 的环境有 `python3`（hook 用它执行策略脚本）；
@@ -180,15 +181,45 @@ python3 "${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins/guard/hooks/guard
 
 预期输出拦截原因且 `exit=2`。
 
+### 更新
+
+`update.sh` 把**已经安装**的插件重装成当前 checkout 的内容，不会顺带安装没装过的插件：
+
+```bash
+./scripts/update.sh                 # 重装已安装的全部插件
+./scripts/update.sh --only guard    # 只更新一个
+./scripts/update.sh --dry-run       # 只打印计划
+./scripts/update.sh /path/to/plugins
+```
+
+- 复制安装的插件会被覆盖重装（旧文件会被清掉，比如布局调整后残留的 `examples/`）；
+  因此「更新」也是迁移脚本：旧单插件布局的安装会被替换成新布局；
+- 软链接安装的插件指向仓库，本来就即时生效，脚本会跳过；
+- 输出里会打印版本变化，例如 `更新 guard：0.2.0 -> 0.3.0`。
+
+拉取新代码后再跑一次即可：
+
+```bash
+git pull --ff-only
+./scripts/update.sh
+```
+
 ### 卸载
 
-按插件逐个卸载（`guard`、`guard-email`、`ask_image` 各自独立）：
+```bash
+./scripts/uninstall.sh --list          # 看每个插件装没装、是复制还是软链接
+./scripts/uninstall.sh                 # 移除本仓库安装的全部插件
+./scripts/uninstall.sh --only guard    # 只移除一个
+./scripts/uninstall.sh --dry-run       # 只打印将要删除的内容
+./scripts/uninstall.sh /path/to/plugins
+```
 
-- 用户级复制安装：`/plugin uninstall guard`，或删除
-  `${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins/<插件名>`；
-- 用户级软链接安装：删除对应的软链接即可；
-- ohmo 工作区安装：删除 `${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins/<插件名>`；
-- 项目级安装：删除 `.openharness/plugins/<插件名>` 软链接。
+脚本只会删除「`plugin.json` 的 `name` 与目录名一致」的目标；目录被别的插件占用时会
+跳过并告警，不会误删。软链接安装只删链接本身，不动仓库。配置
+（`${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/guard-email.json`）与审计日志不会被删除。
+
+也可以手动处理：在 `oh` 里 `/plugin uninstall <名称>`，或直接删除
+`<插件根>/<插件名>`（用户级、ohmo 工作区、项目级的插件根见上一节）。
 
 卸载 `guard-email` 不影响拦截，只是 `send_email` 与 `/guard-email:email` 不再可用。
 
@@ -469,7 +500,11 @@ guard/                              # 仓库 = 插件集合
 │       ├── commands/email.md       # /guard-email:email
 │       ├── scripts/guard-config.py # SMTP 配置向导
 │       └── examples/               # 配置示例
-├── scripts/install.sh              # 集合级安装脚本（遍历 plugins/*，支持 --only）
+├── scripts/
+│   ├── install.sh                  # 安装（遍历 plugins/*，支持 --only / --link / --force）
+│   ├── update.sh                   # 重装已安装的插件（= 更新，兼旧布局迁移）
+│   ├── uninstall.sh                # 移除本仓库安装的插件（只删自己装的）
+│   └── common.sh                   # 插件发现与路径工具（三个脚本共用）
 └── tests/                          # 跨插件测试
 ```
 

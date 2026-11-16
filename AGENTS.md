@@ -42,9 +42,14 @@
 - `plugins/guard-email/tools/send_email.py`：`send_email` 工具，负责收件人白名单、附件大小上限与错误转换。
 - `plugins/guard/skills/`、`commands/`、`agents/`：OpenHarness 约定的扩展目录。
 - `tests/`：`unittest`，不依赖第三方库；同时承载集合级校验（清单、目录名、多插件发现）。
-- `scripts/install.sh`：集合级安装脚本，遍历 `plugins/*/plugin.json`，支持 `--list`
-  列出插件、`--only <名称[,名称]>` 只装指定插件；复制安装（排除 `.git`/`.venv`）或
-  `--link` 软链接安装。
+- `scripts/common.sh`：三个生命周期脚本共用——插件发现（校验目录名 == `name`）、
+  `--only` 过滤、默认插件根、`is_our_plugin` 归属判断。改这里会同时影响装/更/卸。
+- `scripts/install.sh`：集合级安装，支持 `--list` / `--only` / `--all` / `--link` /
+  `--force`；复制安装排除 `.git`、`.venv`、`__pycache__`。
+- `scripts/update.sh`：把**已安装**的插件重装成当前 checkout（复制安装重装、软链接跳过），
+  不安装未安装的插件；旧布局安装靠它迁移。
+- `scripts/uninstall.sh`：移除本仓库安装的插件。**只删 `plugin.json` 的 `name` 与目录名
+  一致的目标**，软链接只删链接；支持 `--list` / `--only` / `--dry-run`。
 - `plugins/guard-email/scripts/guard-config.py`：SMTP 配置向导（setup/show/test），权限 600，授权码不回显。
   非交互配置只允许 `--password-env <变量名>` 或 `--from-env`，禁止新增明文密码参数。
 - `plugins/ask_image/tools/ask_image.py`：`ask_image` 工具。加载器会扫描模块里的每个
@@ -58,6 +63,9 @@
 - 新增或修改规则时同步更新 `tests/test_guard_core.py`，并覆盖“允许”和“拦截”两侧。
 - 新增插件时新建 `plugins/<名称>/plugin.json`（`name` = 目录名），并让
   `python3 -m unittest discover -s tests` 通过；不要为单个插件改 `scripts/install.sh`。
+- 生命周期脚本只允许操作「确认属于本仓库」的插件目录（`is_our_plugin`），
+  不允许对未知目录 `rm -rf`；删除、覆盖前先整体检查，再动手。新增/修改这类脚本时
+  在 `tests/test_install_script.py` 或 `tests/test_lifecycle_scripts.py` 里补端到端用例。
 - 判断某能力该放哪个插件，看它是否**运行期必需**：拦截判定必需 → `guard`；只是在
   装了它之后才可用的能力（发邮件、看图问答）→ 各自独立插件。命令名前缀等于插件名，
   所以独立插件会得到 `/guard-email:email` 这样的名字，迁移命令前先在 CHANGELOG 标为破坏性变更。

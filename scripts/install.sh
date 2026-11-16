@@ -4,6 +4,10 @@
 # 仓库按插件拆分：每个插件自成一包（plugins/<名称>），可以整包装，也可以只挑其中几个装。
 set -euo pipefail
 
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=common.sh
+. "$HERE/common.sh"
+
 usage() {
   cat <<'EOF'
 用法：
@@ -50,51 +54,11 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC="$(cd "$HERE/.." && pwd)"
 SRC_PLUGINS="$SRC/plugins"
-DEST_ROOT="${POSITIONAL[0]:-${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins}"
+DEST_ROOT="${POSITIONAL[0]:-$(default_plugins_root)}"
 
-if [ ! -d "$SRC_PLUGINS" ]; then
-  echo "未找到 $SRC_PLUGINS，请在插件集合仓库中运行该脚本。" >&2
-  exit 1
-fi
-
-# 发现插件并校验清单：目录名必须与 plugin.json 的 name 一致。
-PLUGIN_DIRS=()
-PLUGIN_NAMES=()
-PLUGIN_VERSIONS=()
-PLUGIN_DESCRIPTIONS=()
-for dir in "$SRC_PLUGINS"/*/; do
-  dir="${dir%/}"
-  [ -f "$dir/plugin.json" ] || continue
-  meta="$(python3 - "$dir/plugin.json" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1], encoding="utf-8") as handle:
-    manifest = json.load(handle)
-print(manifest["name"])
-print(manifest.get("version", "0.0.0"))
-print(" ".join(manifest.get("description", "").split()))
-PY
-)"
-  name="$(printf '%s\n' "$meta" | sed -n '1p')"
-  version="$(printf '%s\n' "$meta" | sed -n '2p')"
-  description="$(printf '%s\n' "$meta" | sed -n '3p')"
-  if [ "$name" != "$(basename "$dir")" ]; then
-    echo "$dir/plugin.json 的 name=$name 与目录名不一致，请修正后再安装。" >&2
-    exit 1
-  fi
-  PLUGIN_DIRS+=("$dir")
-  PLUGIN_NAMES+=("$name")
-  PLUGIN_VERSIONS+=("$version")
-  PLUGIN_DESCRIPTIONS+=("$description")
-done
-
-if [ "${#PLUGIN_DIRS[@]}" -eq 0 ]; then
-  echo "$SRC_PLUGINS 下没有找到任何 plugin.json。" >&2
-  exit 1
-fi
+discover_plugins "$SRC_PLUGINS"
 
 if [ "$LIST_ONLY" -eq 1 ]; then
   echo "可安装插件（$SRC_PLUGINS）："
@@ -104,35 +68,7 @@ if [ "$LIST_ONLY" -eq 1 ]; then
   exit 0
 fi
 
-# --only 过滤：按名称挑插件，未知名直接报错，避免"以为装了其实没装"。
-if [ -n "$SELECT" ]; then
-  SELECTED_DIRS=()
-  SELECTED_NAMES=()
-  IFS=',' read -r -a WANTED <<< "$SELECT"
-  for wanted in "${WANTED[@]}"; do
-    wanted="$(printf '%s' "$wanted" | tr -d '[:space:]')"
-    [ -n "$wanted" ] || continue
-    found=0
-    for i in "${!PLUGIN_NAMES[@]}"; do
-      if [ "${PLUGIN_NAMES[$i]}" = "$wanted" ]; then
-        SELECTED_DIRS+=("${PLUGIN_DIRS[$i]}")
-        SELECTED_NAMES+=("${PLUGIN_NAMES[$i]}")
-        found=1
-        break
-      fi
-    done
-    if [ "$found" -eq 0 ]; then
-      echo "未找到插件：$wanted（可用：${PLUGIN_NAMES[*]}）" >&2
-      exit 1
-    fi
-  done
-  if [ "${#SELECTED_NAMES[@]}" -eq 0 ]; then
-    echo "--only 没有解析出任何插件名：$SELECT" >&2
-    exit 1
-  fi
-  PLUGIN_DIRS=("${SELECTED_DIRS[@]}")
-  PLUGIN_NAMES=("${SELECTED_NAMES[@]}")
-fi
+select_plugins "$SELECT"
 
 # 先整体检查冲突，避免装到一半失败。
 CONFLICTS=()
@@ -187,8 +123,8 @@ echo
 echo "已安装插件：${PLUGIN_NAMES[*]}（$DEST_ROOT）"
 echo "未安装的插件不会加载；需要更多插件时重跑本脚本并加 --only <名称>。"
 echo "下一步："
-DEFAULT_USER_ROOT="${OPENHARNESS_CONFIG_DIR:-$HOME/.openharness}/plugins"
-OHMO_ROOT="${OHMO_WORKSPACE:-$HOME/.ohmo}/plugins"
+DEFAULT_USER_ROOT="$(default_plugins_root)"
+OHMO_ROOT="$(ohmo_plugins_root)"
 if [ "$LINK" -eq 0 ] && [ "$DEST_ROOT" != "$DEFAULT_USER_ROOT" ] && [ "$DEST_ROOT" != "$OHMO_ROOT" ]; then
   case " ${PLUGIN_NAMES[*]} " in
     *" guard "*)

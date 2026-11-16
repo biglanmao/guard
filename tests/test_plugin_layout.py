@@ -159,8 +159,15 @@ class PluginLayoutTest(unittest.TestCase):
 
     def test_installer_discovers_plugins(self) -> None:
         script = (ROOT / "scripts" / "install.sh").read_text(encoding="utf-8")
+        common = (ROOT / "scripts" / "common.sh").read_text(encoding="utf-8")
+        self.assertIn('"$HERE/common.sh"', script)
         self.assertIn('SRC_PLUGINS="$SRC/plugins"', script)
-        self.assertIn('"$SRC_PLUGINS"/*/', script)
+        self.assertIn('discover_plugins "$SRC_PLUGINS"', script)
+        self.assertIn('"$src_plugins"/*/', common)
+
+    def test_lifecycle_scripts_exist(self) -> None:
+        for name in ("install.sh", "uninstall.sh", "update.sh", "common.sh"):
+            self.assertTrue((ROOT / "scripts" / name).is_file(), f"缺少 scripts/{name}")
 
     def test_installer_supports_selective_install(self) -> None:
         """插件彼此独立：安装脚本必须支持列出与只装指定插件。"""

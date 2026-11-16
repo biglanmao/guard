@@ -13,6 +13,13 @@
 - 插件 `plugins/ask_image/`：`ask_image` 工具就图片内容回答一个具体问题（必填 `question`、
   可选 `context`），复用内置 `image_to_text` 的图片解析与视觉模型调用，只替换 prompt 组合，
   输出与报错措辞改为 `ask_image` / `[Image answer via ...]`。
+- 新增 `scripts/uninstall.sh`：移除本仓库安装的插件，支持 `--list` / `--only` / `--dry-run`；
+  只删除 `plugin.json` 的 `name` 与目录名一致的目标，软链接只删链接，不会误删别人的插件。
+- 新增 `scripts/update.sh`：把已安装的插件重装成当前 checkout（复制安装重装、软链接跳过、
+  不安装新插件），兼作旧单插件布局的迁移工具；输出会打印版本变化。
+- 三个生命周期脚本的插件发现与 `--only` 过滤抽到 `scripts/common.sh`。
+- `tests/test_lifecycle_scripts.py`：覆盖卸载的选择性/演练/软链接/外来目录，以及更新的
+  重装、跳过软链接、不安装缺失插件、演练不改动。
 - `tests/test_install_script.py`：端到端跑 `scripts/install.sh`（复制 / 软链 / `--only` /
   `--force` / `--list`），并用安装产物里的 `hooks.json` 验证「装好之后 hook 真的能拦截、
   审计真的会写记录」，而不只是检查文件存在。
