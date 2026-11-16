@@ -138,6 +138,11 @@ stderr 会输出以 `[guard][WARN]` 开头的告警，明确写出「本次工�
 因此**把插件装到非默认插件根目录时请设置 `OPENHARNESS_GUARD_ROOT`**；看到
 `[guard][WARN]` 就说明当前没有护栏，先修路径再执行高风险操作。
 
+**严格模式**：设置 `OPENHARNESS_GUARD_STRICT=1` 后，找不到脚本时不再静默放行，而是
+拒绝每一次工具调用（退出码 2），告警以 `[guard][BLOCKED]` 开头并进入模型上下文——
+适合 CI、批处理、无人值守任务。代价是配错路径会锁死所有工具，恢复方式是修好安装或
+`unset OPENHARNESS_GUARD_STRICT`；默认关闭，不影响交互式使用。
+
 ### 验证安装
 
 启动 `oh` 后：
@@ -381,6 +386,7 @@ post_tool_use hook ──► hooks/guard_audit.py ──► JSONL 审计日志
 | `OPENHARNESS_GUARD_MODE` | `off` / `audit` / `enforce` | `enforce` | `audit` 只告警不拦截，`off` 关闭判定 |
 | `OPENHARNESS_GUARD_POLICY` | 文件路径 | 内置 `plugins/guard/policies/default.json` | 自定义策略文件 |
 | `OPENHARNESS_GUARD_ROOT` | 目录 | 见下节查找顺序 | hook 脚本定位插件根目录或插件根，优先于默认位置 |
+| `OPENHARNESS_GUARD_STRICT` | `0` / `1` | `0` | `1` 时若找不到 hook 脚本则拒绝工具调用（fail-closed），而不是静默放行 |
 | `OPENHARNESS_GUARD_AUDIT_LOG` | 文件路径 | `$OPENHARNESS_LOGS_DIR/guard-audit.jsonl` | 审计日志位置 |
 | `OPENHARNESS_LOGS_DIR` | 目录 | `~/.openharness/logs` | OpenHarness 日志目录 |
 

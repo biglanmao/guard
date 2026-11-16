@@ -21,6 +21,10 @@
   缺失时 fail-open），以及 `ask_image` 的 prompt 组合、委托透传与「只注册自身、
   不重复注册父类」（未安装 openharness 时整体跳过）。
 
+- `OPENHARNESS_GUARD_STRICT=1` 严格模式：hook 脚本找不到时不再静默放行，而是拒绝工具调用
+  （退出码 2）并把 `[guard][BLOCKED]` 告警送入模型上下文；默认关闭。审计日志的
+  `hook-missing` 事件新增 `strict` 字段，可区分放行与拒绝。
+
 ### Changed
 
 **破坏性**

@@ -228,6 +228,7 @@ class InstallResolutionTest(unittest.TestCase):
                 "OPENHARNESS_GUARD_POLICY",
                 "OPENHARNESS_GUARD_MODE",
                 "OPENHARNESS_GUARD_AUDIT_LOG",
+                "OPENHARNESS_GUARD_STRICT",
                 "OPENHARNESS_LOGS_DIR",
                 "OHMO_WORKSPACE",
             }
@@ -330,6 +331,44 @@ class InstallResolutionTest(unittest.TestCase):
             self.assertIn("未找到 guard_hook.py", result.stderr)
             self.assertIn("未经任何拦截", result.stderr)
             self.assertIn(".openharness/plugins", result.stderr)
+
+    def test_strict_mode_blocks_when_hook_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            result = self.run_command(root, project, OPENHARNESS_GUARD_STRICT="1")
+            self.assertEqual(result.returncode, 2, result.stderr)
+            self.assertIn("[guard][BLOCKED]", result.stderr)
+            self.assertIn("strict 模式已拒绝", result.stderr)
+            self.assertIn("OPENHARNESS_GUARD_STRICT", result.stderr)
+
+            log = root / "home" / ".openharness" / "logs" / "guard-audit.jsonl"
+            events = [
+                json.loads(line)
+                for line in log.read_text(encoding="utf-8").splitlines()
+                if line.strip()
+            ]
+            self.assertTrue(events[-1]["strict"])
+            self.assertEqual(events[-1]["event"], "hook-missing")
+
+    def test_strict_mode_does_not_block_when_installed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            project = root / "project"
+            project.mkdir()
+            self.install_copy(root / "home" / ".openharness" / "plugins" / "guard")
+
+            result = self.run_command(
+                root,
+                project,
+                OPENHARNESS_GUARD_STRICT="1",
+                OPENHARNESS_HOOK_PAYLOAD=json.dumps(
+                    {"tool_name": "bash", "tool_input": {"command": "ls -la"}}
+                ),
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("[guard][BLOCKED]", result.stderr)
 
     def test_missing_hook_records_audit_event(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

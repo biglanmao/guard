@@ -27,7 +27,8 @@
   `$PWD/.openharness/plugins` 的顺序查找，每层先试 `<根>/hooks/*.py` 再试
   `<根>/*/hooks/*.py`；**不要写死插件目录名**。全部缺失时保持 fail-open，但必须输出
   `[guard][WARN]` 告警（写明「未经任何拦截」与查找路径）并追加 `hook-missing` 审计事件，
-  不要让它静默失效。修改后同步更新
+  不要让它静默失效。`OPENHARNESS_GUARD_STRICT=1` 时该分支改为退出码 2（fail-closed），
+  默认关闭，改动这条路径要同时覆盖 strict 与默认两种模式。修改后同步更新
   `tests/test_plugin_layout.py` 的 `InstallResolutionTest`。
 - `plugins/guard/lib/guard_core.py`：策略引擎，**只允许使用 Python 标准库**。
 - `plugins/guard/policies/default.json`：默认规则；修改后必须补测试。其中
